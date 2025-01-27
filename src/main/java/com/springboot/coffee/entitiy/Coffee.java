@@ -17,11 +17,30 @@ public class Coffee extends Auditable {
     private Long coffeeId;
 
     @Column(length = 20, nullable = false)
-    private String korname;
-
+    private String korName;
 
     @Column(length = 20, nullable = false)
-    private String engname;
+    private String engName;
 
+    @Column(length = 3, nullable = false)
+    private String coffeeCode;
 
+    @Column(nullable = false)
+    private int price;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CoffeeStatus coffeeStatus = CoffeeStatus.COFFEE_SALE;
+
+    public enum CoffeeStatus{
+        COFFEE_SALE("판매 중"),
+        COFFEE_SOLD("품절");
+
+        @Getter
+        private String status;
+
+        CoffeeStatus(String status) {
+            this.status = status;
+        }
+    }
 }
