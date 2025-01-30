@@ -38,8 +38,10 @@ public class Member extends Auditable {
     @OneToMany(mappedBy = "member")
     private List<Order> orders = new ArrayList<>();
 
-    //stamp는 이후에 만들예정
-    //private Stamp stamp
+    //스탬프 객체와 1대1 연관관계 설정, 모든 Cascade(영속성전이)를 적용
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "STAMP_ID")
+    private Stamp stamp;
 
     //영속성 전이 (연관관계 수동설정)
     public void setOrder(Order order){

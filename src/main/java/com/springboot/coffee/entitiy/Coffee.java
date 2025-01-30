@@ -26,7 +26,7 @@ public class Coffee extends Auditable {
     private String coffeeCode;
 
     @Column(nullable = false)
-    private int price;
+    private Integer price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

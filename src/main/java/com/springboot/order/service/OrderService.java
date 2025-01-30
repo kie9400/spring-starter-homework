@@ -29,10 +29,31 @@ public class OrderService {
     }
 
     public Order createOrder(Order order) {
-        verifyExistOrder(order);
+        //회원이 존재하는지 확인
+        Member findMember = memberService.findVerifiedMember(order.getMember().getMemberId());
 
-        return order;
+        //커피가 존재하는지 확인
+        order.getOrderCoffees().stream()
+                .forEach(orderCoffee -> coffeeService.findVerifiedCoffee(orderCoffee.getCoffee().getCoffeeId()));
+
+
+        //스탬프 증가
+        findMember.getStamp().setStampCount(addStampCount(order));
+        return orderRepository.save(order);
     }
+
+    public Order updateOrder(Order order){
+        Order findOrder = findVerifiedOrder(order.getOrderId());
+
+        //주문 상태만 수정이 가능하다.
+        //주문 상태가 요청으로 들어온다면(null이 아니라면) 수정한다.
+        Optional.ofNullable(order.getOrderStatus())
+                .ifPresent(orderStatus -> findOrder.setOrderStatus(orderStatus));
+
+        //repository에 저장하여 반영
+        return orderRepository.save(order);
+    }
+
 
     public Order findOrder(long orderId) {
         return findVerifiedOrder(orderId);
@@ -44,16 +65,21 @@ public class OrderService {
     }
 
     public void cancelOrder(long orderId) {
+        //데이터베이스 에서 삭제하지않고 상태만 변경
         Order order = findVerifiedOrder(orderId);
-        orderRepository.delete(order);
-    }
-    //멤버와 회원이 존재하는지 확인
-    private void verifyExistOrder(Order order){
-        memberService.findVerifiedMember(order.getMember().getMemberId());
+        order.setOrderStatus(Order.OrderStatus.ORDER_CANCEL);
+        orderRepository.save(order);
 
-        order.getOrderCoffees().stream()
-                .forEach(orderCoffee ->
-                        coffeeService.findCoffee(orderCoffee.getCoffee().getCoffeeId()));
+        //orderRepository.delete(order);
+    }
+
+    //회원이 주문했을경우 stampCount를 증가시킨다.
+    public int addStampCount(Order order){
+        int stampCount = order.getOrderCoffees().stream()
+                .mapToInt(orderCoffee -> orderCoffee.getQuantity())
+                .sum();
+
+        return stampCount;
     }
 
     //해당 주문이 존재하는지 확인
@@ -65,4 +91,5 @@ public class OrderService {
 
         return findOrder;
     }
+
 }

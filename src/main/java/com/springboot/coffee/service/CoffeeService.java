@@ -36,8 +36,9 @@ public class CoffeeService {
         //변경할 커피가 존재하는지 확인
         Coffee findCoffee = findVerifiedCoffee(coffee.getCoffeeId());
 
-        Optional.ofNullable(coffee.getKorName()).ifPresent(korName -> findCoffee.setKorName(korName));
-        Optional.ofNullable(coffee.getEngName()).ifPresent(korName -> findCoffee.setKorName(korName));
+        Optional.ofNullable(coffee.getKorName())
+                .ifPresent(korName -> findCoffee.setKorName(korName));
+        Optional.ofNullable(coffee.getEngName()).ifPresent(engName -> findCoffee.setEngName(engName));
         Optional.ofNullable(coffee.getPrice()).ifPresent(price -> findCoffee.setPrice(price));
         Optional.ofNullable(coffee.getCoffeeStatus())
                 .ifPresent(coffeeStatus -> findCoffee.setCoffeeStatus(coffeeStatus));
@@ -57,7 +58,9 @@ public class CoffeeService {
     public void deleteCoffee(long coffeeId){
         Coffee coffee = findVerifiedCoffee(coffeeId);
 
-        coffeeRepository.delete(coffee);
+        //db에서 삭제가 아닌 상태를 변경
+        coffee.setCoffeeStatus(Coffee.CoffeeStatus.COFFEE_SOLD);
+        coffeeRepository.save(coffee);
     }
 
     private void verifyExistCoffee(String coffeeCode){
@@ -68,7 +71,7 @@ public class CoffeeService {
         }
     }
 
-    private Coffee findVerifiedCoffee(long coffeeId){
+    public Coffee findVerifiedCoffee(long coffeeId){
         Optional<Coffee> coffee = coffeeRepository.findById(coffeeId);
 
         //만약 DB에 존재하지 않는 커피라면 예외처리

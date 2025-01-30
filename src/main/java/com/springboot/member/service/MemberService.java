@@ -3,6 +3,7 @@ package com.springboot.member.service;
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
 import com.springboot.member.entity.Member;
+import com.springboot.member.entity.Stamp;
 import com.springboot.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,13 +26,14 @@ public class MemberService {
     public Member createMember(Member member){
         //중복 이메일 여부 확인
         verifyExistsEmail(member.getEmail());
-
+        member.setStamp(new Stamp());
         return  memberRepository.save(member);
     }
 
     public Member updateMember(Member member) {
         Member findMember = findVerifiedMember(member.getMemberId());
 
+        //null처리를 위해서 Optional를 사용한다.
         //이름, 번호, 상태만 변경하는하도록 설정
         Optional.ofNullable(member.getPhone()).ifPresent(phone -> findMember.setPhone(phone));
         Optional.ofNullable(member.getName()).ifPresent(name -> findMember.setName(name));
@@ -54,10 +56,9 @@ public class MemberService {
         Member findMember = findVerifiedMember(memberId);
 
         //db에서 삭제하는거 보다는 상태를 변경하는게 좋다
-//        findMember.setMemberStatus(Member.MemberStatus.MEMBER_QUIT);
-//        memberRepository.save(findMember);
-
-        memberRepository.delete(findMember);
+        findMember.setMemberStatus(Member.MemberStatus.MEMBER_QUIT);
+        memberRepository.save(findMember);
+        //memberRepository.delete(findMember);
     }
 
     private void verifyExistsEmail(String email){
@@ -69,6 +70,7 @@ public class MemberService {
     }
 
     public Member findVerifiedMember(long memberId){
+        //memberId를 통해 repository에 회원이 있는지 검증한다.
         Optional<Member> member = memberRepository.findById(memberId);
         //만약 예외가 발생했을 경우 비즈니스로직 예외를 던진다.
         Member findMemeber = member.orElseThrow(() ->
